@@ -22,12 +22,17 @@ array   db "00SSS0" ;1
         db "0C000P" ;3
         db "0C000P" ;4
         db "0C000P" ;5
-        db "00000P" ;6
+        db "00000P" ;6 
+
+cordenadasX db " A B C D E F $"
+borde db "_____________$"
+
+;----------Texto---------- 
 
 
 
-;----------Texto----------
-;Mesajes de ingreso
+;Mesajes de ingreso 
+msgInicio db "Bienvenido a BATALLA NAVAL, precione ENTER para empezar $"
 msgMisil db "Misil $"
 msgIngreso db ",ingrese la celda a atacar: $"
 
@@ -41,15 +46,32 @@ msgSubmarinoHundido db ", submarino hundido.$"
 msgCruseroHundido db ", crusero hundido.$"
 msgPortaAvionesHundido db ", porta avione hundido.$"
 
+;Mensajes de final de juego:
+msgGanador1 db "Felisitaciones ha hundido todos los barcos. Ha ganado!! $"
+msgGanador2 db "Numero de total de tiros: $"
 
+msgPerdedor1 db "No ha hundido todos lo barcos. Ha perdido. $"
+msgPerdedor2 db "Objetivos restantes por disparar: $"
+msgPerdedor3 db "Imprimiendo tablero $"
+msgPerdedor4 db "S = Submarino      C = Crusero     P = Portaviones $"
+msgPerdedor5 db "0 = Agua       1 = Disparos Asertados  $"
 
 .code
 .start
 
+;---------------------------------Inicio del juego-----------------------------------
+iniciar:
+    mov ah , 09h
+    lea dx , msgInicio
+    int 21h
+    
+    
+    call saltoLinea
+    
+    
+    jmp ingresoCordenadas
+
 ;---------------------------------Generacion de Tablero---------------------------------
-
-
-
 
 
 
@@ -244,12 +266,8 @@ tiroPortaAviones:        ;Reduce vpPortaAviones y revisa si el crusero ya sido h
 
 
 continuar:         ;Controla si el juego continua o acaba   
-    mov ah,02h
-    mov dl,13
-    int 21h            ;Retorno de carro (regreso al inicio de la linea)
-      
-    mov dl,10
-    int 21h            ;Salto a nueva linea
+    
+    call saltoLinea
     
     mov dl , vpSubmarino
     add dl , vpCrucero
@@ -262,22 +280,197 @@ continuar:         ;Controla si el juego continua o acaba
     jae perdedor           ;Si nDisparos == 20 , entonses juego perdido, salto a perdedor
     jb ingresoCordenadas   ;Si nDisparos != 20 , quedan misiles disponibles, salto a ingresoCordenadas
                        
+
+saltoLinea:
+    mov ah,02h
+    mov dl,13
+    int 21h            ;Retorno de carro (regreso al inicio de la linea)
+      
+    mov dl,10
+    int 21h            ;Salto a nueva linea
+    ret
                    
 ;---------------------------------Juego ganado---------------------------------
 ganador:
-jmp salir
+
+    mov ah , 09h
+    lea dx , msgGanador1
+    int 21h 
+    
+    call saltoLinea
+    
+    mov ah , 09h
+    lea dx , msgGanador2
+    int 21h 
+    
+    mov ax , 00h
+    mov al , nDisparos
+    mov bl , 10
+    div bl
+    mov dx , ax
+    
+    mov ah , 02h
+    add dl , 30h        ;Conversion de la decena de nDisparos a codigo ASCII
+    int 21h             ;Imprecion del la decena de nDisparos
+    mov dl , dh
+    add dl , 30h        ;Conversion de la unidad de nDisparos a codigo ASCII
+    int 21h     
+    
+
+    jmp nuevaPartida
 
 
 
 ;---------------------------------Juego perdido---------------------------------
 perdedor:
-jmp salir 
+    mov ah , 09h
+    lea dx , msgPerdedor1
+    int 21h 
+    
+    call saltoLinea
+    
+    mov ah , 09h
+    lea dx , msgPerdedor2
+    int 21h
+    
+    mov ah , 00h
+    mov al , vpSubmarino
+    add al , vpCrucero
+    add al , vpPortaAviones
+
+    mov bl , 10
+    div bl
+    mov dx , ax
+    
+    mov ah , 02h
+    add dl , 30h        ;Conversion de la decena de al a codigo ASCII
+    int 21h             ;Imprecion del la decena de al
+    mov dl , dh
+    add dl , 30h        ;Conversion de la unidad de al a codigo ASCII
+    int 21h             ;Imprecion del la unidad de al
+
+    call saltoLinea
+    
+    mov ah , 09h
+    lea dx , msgPerdedor3
+    int 21h
+    
+    call saltoLinea
+    
+    mov ah , 09h
+    lea dx , msgPerdedor4
+    int 21h
+    
+    call saltoLinea
+    
+    mov ah , 09h
+    lea dx , msgPerdedor5
+    int 21h
+    
+    call saltoLinea
+    
+    call imprimirMatriz
+    
+    jmp nuevaPartida 
+
+
+
+imprimirMatriz:
+    mov ah , 02h
+    mov dl , 09
+    int 21h
+    
+    mov ah , 09h
+    lea dx , cordenadasX
+    int 21h
+    
+    call saltoLinea
+    
+    mov dl , 09
+    int 21h
+    
+    mov ah , 09h
+    lea dx , borde
+    int 21h 
+    
+    call saltoLinea
+    
+    call saltoLinea
+    
+    mov ah , 02h   
+    mov dl , 09
+    int 21h
+    
+    mov dl , 179
+    int 21h
+    
+    mov si, 00h
+    mov cx , 00h
+    mov bl , 00h
+    
+    jmp imprimirFila
+
+
+imprimirFila:
+mov ah , 02h
+mov dl , array[si]
+int 21h              ;Imprime un caracter de la matriz
+
+
+inc cx
+inc si
+
+cmp cx , 6
+je siguienteFila
+mov dl , 00h
+int 21h              ;Imprime un espacio
+jne imprimirFila 
+
+
+siguienteFila:
+inc bl
+mov cx , 00h
+
+mov ah , 02h
+mov dl , 179
+int 21h
+
+mov dl , 00h
+int 21h              ;Imprime un espacio
+
+mov dl , bl
+add dl , 30h
+int 21h
+
+call saltoLinea
+
+cmp bl , 6
+je finImprimirMatriz
+mov dl , 09
+int 21h
+    
+mov dl , 179
+int 21h
+jne imprimirFila
+          
+          
+finImprimirMatriz:
+
+    mov dl , 09
+    int 21h
+
+    mov ah , 09h
+    lea dx , borde
+    int 21h
+    
+    call saltoLinea
+ret 
 
 
 
 ;---------------------------------Nueva partida---------------------------------
-
-
+nuevaPartida:
+jmp salir
 
 
 salir: ;Cerrar programa 
