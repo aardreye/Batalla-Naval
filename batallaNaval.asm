@@ -32,9 +32,11 @@ borde db "_____________$"
 
 
 ;Mesajes de ingreso 
-msgInicio db "Bienvenido a BATALLA NAVAL, precione ENTER para empezar $"
+msgInicio db "          Bienvenido a BATALLA NAVAL $"
 msgMisil db "Misil $"
 msgIngreso db ",ingrese la celda a atacar: $"
+
+msgNuevaPartida db "Ingrese ENTER para nueva partida y ESC para acabar el programa $"
 
 ;Notificasiones de disparo
 msgExitoso db "..................Impacto confirmado$"   
@@ -63,15 +65,26 @@ msgPerdedor5 db "0 = Agua       1 = Disparos Asertados  $"
 iniciar:
     mov ah , 09h
     lea dx , msgInicio
-    int 21h
+    int 21h                     ;Imprecion del mensaje en msgInicio
     
-    
-    call saltoLinea
-    
-    
-    jmp ingresoCordenadas
+    call saltoLinea             ;Salto de liena
+    jmp ingresoCordenadas       
 
 ;---------------------------------Generacion de Tablero---------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -103,11 +116,9 @@ ingresoCordenadas:  ;Imprime el mensaje para el ingreso de cordenadas
 
 
 
-scanerLetra:            ;Extrae una letra entre A-F o a-f, si se ingresa algo incorecto lo borra y vuelve a pedirlo
-    call borrar         ;Borra el ultimo caracter en pantalla
-      
-    mov ah , 01h
-    int 21h             ;Extrae un caracter del teclado y lo guarda en al
+scanerLetra:            ;Extrae una letra entre A-F o a-f, si se ingresa algo incorecto lo borra y vuelve a pedirlo   
+    mov ah , 00h
+    int 16h             ;Extrae un caracter del teclado y lo guarda en al
     
     cmp al , 65
     jb scanerLetra      ;Si lo ingresado esta debajo de A(65 ASCII) , salto a scanerLetra (Reingreso de letra)
@@ -119,42 +130,77 @@ scanerLetra:            ;Extrae una letra entre A-F o a-f, si se ingresa algo in
     cmp al , 102
     jbe minuscula       ;Si caracter ingresado entre a(97 ASCII)-f(102 ASCII) salto a minuscula
     
+    
     jmp scanerLetra     ;Si el caracter ingresado no esta entre A-F o a-f, salto a scanerLetra (Reingreso de letra)
+    
+     
 
-
-mayuscula:          ;Convierte caracter guardado en al de A-F a entero de 1-6
+mayuscula:          ;Convierte caracter guardado en al de A-F a entero de 1-6 
+    mov ah , 02h
+    mov dl , al
+    int 21h             ;Imprime el caracter guardado en en al
+    
     sub al , 64         ;Conversion a numero
     mov corX ,al        ;Guardado en memoria
-    mov ah , 02h
-    mov dl , 00h
-    int 21h             ;Imprime un espacio para evitar que la letra se borre al entrar en scanerNumero
+    
     jmp scanerNumero    ;Salto a scanerNumero
     
     
 minuscula:          ;Convierte caracter guardado en en al de a-f a entero de 1-6
+    mov ah , 02h
+    mov dl , al
+    int 21h             ;Imprime el caracter guardado en en al
+    
     sub al , 96         ;Conversion a entero
     mov corX ,al        ;Guardado en memoria de cordenada en x
-    mov ah , 02h
-    mov dl , 00h
-    int 21h             ;Imprime un espacio para evitar que la letra se borre al entrar en scanerNumero
+    
     jmp scanerNumero    ;scanerNumero
     
 
 scanerNumero:       ;Extrae una caracter entre 1-6, si se ingresa algo incorecto lo borra y vuelve a pedirlo
-    call borrar         ;Borra el ultimo caracter en pantalla
+    mov ah , 00h
+    int 16h             ;Extrae un caracter del teclado y lo guarda en al
     
-    mov ah , 01h
-    int 21h             ;Extrae un caracter del teclado y lo guarda en al
+    cmp al , 8         
+    je volverLetra      ;Si caracter ingresado es retroseso, salto a volverLetra 
     
     cmp al , 54
     ja  scanerNumero    ;Si caracter ingresado esta encima de 6(54 ASCII) salto a scanerNumero (Reingreso de numero)
     cmp al , 49
     jb  scanerNumero    ;Si caracter ingresado esta debajo de 1(49 ASCII) salto a scanerNumero (Reingreso de numero)
     
+    mov ah , 02h
+    mov dl , al
+    int 21h             ;Imprime el caracter guardado en en al
+    
     sub al , 30h        ;Conversion de caracter en ASCII a numero entero
     mov corY , al       ;Guardado en memoria de cordenada en y
     
-    jmp disparar        ;Si caracter ingresdo entre 1(49 ASCII)-6(54 ASCII) salto a disparar 
+    jmp finalisarIngreso        ;Si caracter ingresdo entre 1(49 ASCII)-6(54 ASCII) salto a disparar 
+
+
+
+volverLetra:            ;Retrosede a scanerLetra
+    call borrar
+    jmp  scanerLetra
+
+
+volverNumero:           ;Retrosede a scanerNumero
+    call borrar
+    jmp  scanerNumero
+
+
+finalisarIngreso:       ;Finalisa el ingreso de los datos ENTER dispara y retroseso para volver
+    mov ah , 00h
+    int 16h             ;Extrae un caracter del teclado y lo guarda en al
+    
+    cmp al ,13          ;Al precionar ENTER se dispara
+    je  disparar
+    
+    cmp al , 8         
+    je volverNumero      ;Si caracter ingresado es retroseso, salto a volverNumero
+    
+    jmp finalisarIngreso ;Si no es ENTER o retroseso se vuelve a pedir por teclado
 
     
 borrar:             ;Borra un caracter de pantalla
@@ -171,6 +217,7 @@ borrar:             ;Borra un caracter de pantalla
 
 ;---------------------------------Disparos---------------------------------
 disparar:           ;Revisa el valor de matriz en la cordenas de ingresada (corX,corY) 
+    
     mov al , 6
     mov bl ,corY
     dec bl
@@ -179,7 +226,7 @@ disparar:           ;Revisa el valor de matriz en la cordenas de ingresada (corX
     
     add al , corX       ;Determina la posicion derminada por (corX, corY) en la matriz
     mov ah , 00h
-    mov si , ax         ;Guarde la posicion derminada por (corX, corY) en la matriz en regitro si 
+    mov si , ax         ;Guarda la posicion derminada por (corX, corY) en la matriz en regitro si 
     mov al ,array[si]   ;Extrae el valor de la matriz en posicion si
     
     cmp al , "0"
@@ -207,7 +254,7 @@ tiroFallido:           ;Imprime el mensaje de tiro fallido
     jmp continuar 
 
 
-tiroExitoso:       ;Imprime el mensaje de tiro exitoso ,cambia el valor en esa cordenada a 1 y reduse la vidad del barco al que se disparo
+tiroExitoso:       ;Imprime el mensaje de tiro exitoso ,cambia el valor en esa cordenada a 1 y reduse la vida del barco al que se disparo
     mov ah , 09h
     lea dx , msgExitoso
     int 21h             ;Imprecion del mensaje en msgExitoso
@@ -225,36 +272,36 @@ tiroExitoso:       ;Imprime el mensaje de tiro exitoso ,cambia el valor en esa c
     je tiroPortaAviones ;Si al == "P", se disparo a un porta aviones , salto a tiroPortaAviones
 
 
-tiroSubmarino:        ;Reduce vpSubmarino y revisa si el crusero ya sido hundido 
+tiroSubmarino:        ;Reduce vpSubmarino y revisa si el crusero ya ha sido hundido 
     dec vpSubmarino      ;Decremento en uno del vpSubmarino
-    mov al , vpSubmarino
     
+    mov al , vpSubmarino
     cmp al , 00h
     jne continuar        ;si al != 0 , vpSubmarino no es cero , salto a continuar
       
     mov ah , 09h
     lea dx , msgSubmarinoHundido
     int 21h             ;si al == 0, Imprecion del mensaje en msgSubmarinoHundido
-    jmp continuar
+    jmp continuar       ;Salto a continuar
 
 
-tiroCrusero:        ;Reduce vpCrucero y revisa si el crusero ya sido hundido  
+tiroCrusero:        ;Reduce vpCrucero y revisa si el crusero ya ha sido hundido  
     dec vpCrucero       ;Decremento en uno del vpCrucero
-    mov al , vpCrucero
     
+    mov al , vpCrucero
     cmp al , 00h        
     jne continuar       ;si al != 0 , vpCrucero no es cero , salto a continuar
       
     mov ah , 09h
     lea dx , msgCruseroHundido
     int 21h            ;si al == 0 , Imprecion del mensaje en msgCruseroHundido
-    jmp continuar
+    jmp continuar      ;Salto a continuar
          
          
-tiroPortaAviones:        ;Reduce vpPortaAviones y revisa si el crusero ya sido hundido 
+tiroPortaAviones:        ;Reduce vpPortaAviones y revisa si el porta aviones ya ha sido hundido 
     dec vpPortaAviones   ;Decremento en uno del vpPortaAviones
-    mov al , vpPortaAviones
     
+    mov al , vpPortaAviones
     cmp al , 00h         
     jne continuar        ;si al != 0 , vpPortaAviones no es cero , salto a continuar
       
@@ -268,6 +315,9 @@ tiroPortaAviones:        ;Reduce vpPortaAviones y revisa si el crusero ya sido h
 continuar:         ;Controla si el juego continua o acaba   
     
     call saltoLinea
+    
+    mov corX , 0
+    mov corY , 0
     
     mov dl , vpSubmarino
     add dl , vpCrucero
@@ -291,17 +341,17 @@ saltoLinea:
     ret
                    
 ;---------------------------------Juego ganado---------------------------------
-ganador:
+ganador:                 ;Imprime los mensajes de ganador y el numero de tiros que se uso para ganar
 
     mov ah , 09h
     lea dx , msgGanador1
-    int 21h 
+    int 21h              ;Imprecion del mensaje en msgGanador1
     
     call saltoLinea
     
     mov ah , 09h
     lea dx , msgGanador2
-    int 21h 
+    int 21h              ;Imprecion del mensaje en msgGanador2
     
     mov ax , 00h
     mov al , nDisparos
@@ -314,7 +364,7 @@ ganador:
     int 21h             ;Imprecion del la decena de nDisparos
     mov dl , dh
     add dl , 30h        ;Conversion de la unidad de nDisparos a codigo ASCII
-    int 21h     
+    int 21h             ;Imprecion del la unidad de nDisparos
     
 
     jmp nuevaPartida
@@ -322,21 +372,21 @@ ganador:
 
 
 ;---------------------------------Juego perdido---------------------------------
-perdedor:
+perdedor:              ;Imprime el mensaja de perdedor , el numero de casillas no asertadas y muestra el tablero al jugador
     mov ah , 09h
     lea dx , msgPerdedor1
-    int 21h 
+    int 21h            ;Imprecion del mensaje en msgPerdedor1
     
     call saltoLinea
     
     mov ah , 09h
     lea dx , msgPerdedor2
-    int 21h
+    int 21h              ;Imprecion del mensaje en msgPerdedor2
     
     mov ah , 00h
     mov al , vpSubmarino
     add al , vpCrucero
-    add al , vpPortaAviones
+    add al , vpPortaAviones ;Suma de la vida de todos los barcos 
 
     mov bl , 10
     div bl
@@ -353,45 +403,45 @@ perdedor:
     
     mov ah , 09h
     lea dx , msgPerdedor3
-    int 21h
+    int 21h             ;Imprecion del mensaje en msgPerdedor3
     
     call saltoLinea
     
     mov ah , 09h
     lea dx , msgPerdedor4
-    int 21h
+    int 21h             ;Imprecion del mensaje en msgPerdedor4
     
     call saltoLinea
     
     mov ah , 09h
     lea dx , msgPerdedor5
-    int 21h
+    int 21h            ;Imprecion del mensaje en msgPerdedor5
     
     call saltoLinea
     
-    call imprimirMatriz
+    call imprimirMatriz  ;Imprecion del tablero
     
-    jmp nuevaPartida 
+    jmp nuevaPartida     ;Salto a nuevaPartida 
 
 
 
-imprimirMatriz:
+imprimirMatriz:              ;Imprime el tablero de juego y la informacion de este
     mov ah , 02h
     mov dl , 09
     int 21h
     
     mov ah , 09h
     lea dx , cordenadasX
-    int 21h
+    int 21h                  ;Imprecion del mensaje en cordenadasX
     
     call saltoLinea
     
     mov dl , 09
-    int 21h
+    int 21h                  ;Impracion de Tab
     
     mov ah , 09h
     lea dx , borde
-    int 21h 
+    int 21h                 ;Imprecion del borde superior de tablero
     
     call saltoLinea
     
@@ -399,78 +449,111 @@ imprimirMatriz:
     
     mov ah , 02h   
     mov dl , 09
+    int 21h                 ;Imprecion de Tab 
+    
+    mov dl , 179            ;Imprecion de ascii 179 (Barra vertical)
     int 21h
     
+    mov si, 00h             ;Inicio del indise de la matriz
+    mov cx , 00h            ;Inicio del contador de elementos impresos por fila
+    mov bl , 00h            ;Inicio del contdor de filas
+    
+    jmp imprimirFila        ;Salto a imprimir fila
+
+
+imprimirFila:               ;Imprime un fila del tablero
+    mov ah , 02h
+    mov dl , array[si]
+    int 21h              ;Imprime un caracter de la matriz
+    
+    inc cx               ;Incremento del contador de elementos por fila 
+    inc si               ;Incremento del indise de la matriz
+    
+    cmp cx , 6
+    je siguienteFila     ;Si cx == 6, ya se han impreso todos los elementos de la fila , salto a siguienteFila
+    mov dl , 00h
+    int 21h              ;Imprime un espacio
+    jne imprimirFila     ;Si cx != 6, quedan caracteres de la fila por imprimir , salto a imprimirFila
+
+
+siguienteFila:       ;Imprime el numero de fila y pasa a imprimir la siguiente fila del tablero
+    inc bl
+    mov cx , 00h        ;Reinico del contador de elementos por fila  
+    
+    mov ah , 02h        
     mov dl , 179
-    int 21h
+    int 21h             ;Imprecion de ascii 179 (Barra vertical)
     
-    mov si, 00h
-    mov cx , 00h
-    mov bl , 00h
+    mov dl , 00h
+    int 21h             ;Imprime un espacio
     
-    jmp imprimirFila
-
-
-imprimirFila:
-mov ah , 02h
-mov dl , array[si]
-int 21h              ;Imprime un caracter de la matriz
-
-
-inc cx
-inc si
-
-cmp cx , 6
-je siguienteFila
-mov dl , 00h
-int 21h              ;Imprime un espacio
-jne imprimirFila 
-
-
-siguienteFila:
-inc bl
-mov cx , 00h
-
-mov ah , 02h
-mov dl , 179
-int 21h
-
-mov dl , 00h
-int 21h              ;Imprime un espacio
-
-mov dl , bl
-add dl , 30h
-int 21h
-
-call saltoLinea
-
-cmp bl , 6
-je finImprimirMatriz
-mov dl , 09
-int 21h
+    mov dl , bl
+    add dl , 30h
+    int 21h             ;Imprecion de la fila que acaba de ser impresa (numero en bl) 
     
-mov dl , 179
-int 21h
-jne imprimirFila
-          
-          
-finImprimirMatriz:
-
+    call saltoLinea
+    
+    cmp bl , 6          
+    je finImprimirMatriz ;Si bl == 6, se han impreso todas las filas, salto a finImprimirMatriz
     mov dl , 09
     int 21h
+        
+    mov dl , 179
+    int 21h              ;Imprecion de ascii 179 (Barra vertical)
+    jne imprimirFila     ;Si bl != 6, quedan filas por imprimir, salto a imprimirFila
+          
+          
+finImprimirMatriz:        ;Concluye la imprecion del tablero y retorna a donde  imprimirMatriz fue llamado
+
+    mov dl , 09
+    int 21h               ;Imprecion de Tab 
 
     mov ah , 09h
     lea dx , borde
-    int 21h
+    int 21h               ;Imprecion del borde superior de tablero
     
     call saltoLinea
-ret 
+    ret 
 
 
 
 ;---------------------------------Nueva partida---------------------------------
-nuevaPartida:
-jmp salir
+
+
+nuevaPartida:                  ;Imprime los mensajes de nueva partida
+
+    mov ah , 09h
+    lea dx , msgNuevaPartida
+    int 21h
+
+    jmp continuarOReiniciar
+     
+    
+continuarOReiniciar:            ;Segun el input sea ESC o ENTER , acaba o continua el programa    
+    
+    mov ah , 00h
+    int 16h  
+    
+    cmp al , 27
+    je salir         ;De ingresarse ESC el programa acaba 
+    
+    cmp al , 13
+    je reiniciar     ;De ingresarse ENTER el programa continua
+    
+    jmp ingresoCordenadas
+    
+    
+reiniciar:                    ;Reinicia todas la variable numericas y el tablero a su estado inicial
+
+    mov corX , 0 
+    mov corY , 0
+    
+    mov vpSubmarino , 3
+    mov vpCrucero , 4 
+    mov vpPortaAviones , 5 
+    mov nDisparos , 0
+    
+    jmp ingresoCordenadas
 
 
 salir: ;Cerrar programa 
