@@ -35,7 +35,9 @@ borde db "_____________$"
 
 
 ;Mesajes de ingreso 
-msgInicio db "          Bienvenido a BATALLA NAVAL $"
+msgInicio1 db "          Bienvenido a BATALLA NAVAL $" 
+msgInicio2 db " Presiona ENTER para visualizar el tablero y ubicar los barcos aleatoriamente $" 
+msgInicio3 db "Generando tablero aleatorio............ Espere por favor $"
 msgMisil db "Misil $"
 msgIngreso db ",ingrese la celda a atacar: $"
 
@@ -59,25 +61,55 @@ msgPerdedor1 db "No ha hundido todos lo barcos. Ha perdido. $"
 msgPerdedor2 db "Objetivos restantes por disparar: $"
 msgPerdedor3 db "Imprimiendo tablero $"
 msgPerdedor4 db "S = Submarino      C = Crusero     P = Portaviones $"
-msgPerdedor5 db "0 = Agua       1 = Disparos Asertados  $"
+msgPerdedor5 db "0 = Agua       1 = Disparos Asertados  $" 
+
+msgSalir6 db "Gracias por jugar $"
 
 .code
 .start
 
 ;---------------------------------Inicio del juego-----------------------------------
-iniciar:
+bienvenido:
     mov ah , 09h
-    lea dx , msgInicio
-    int 21h                     ;Imprecion del mensaje en msgInicio 
+    lea dx , msgInicio1
+    int 21h                     ;Imprecion del mensaje en msgInicio1 
     
+    call saltoLinea 
+    
+    mov ah , 09h
+    lea dx , msgInicio2
+    int 21h                     ;Imprecion del mensaje en msgInicio2
+    
+    
+    
+    jmp iniciar
+
+iniciar:
+    mov ah , 00h
+    int 16h  
+ 
+    cmp al , 13
+    je generarTablero     ;De ingresarse ENTER el programa continua
+    
+    jne iniciar  
+    
+    
+
+;---------------------------------Generacion de Tablero---------------------------------
+generarTablero:     
     call saltoLinea
-     
+    
     call imprimirMatriz
     
     call saltoLinea             ;Salto de liena
-    jmp place_p_aircraft       
-
-;---------------------------------Generacion de Tablero---------------------------------
+    
+    mov ah , 09h
+    lea dx , msgInicio3
+    int 21h                     ;Imprecion del mensaje en msgInicio3
+    
+    call saltoLinea             ;Salto de liena
+    jmp place_p_aircraft   
+    
 
  ;COLOCA UN PORTAVIONES DE FORMA ALEATORIA EN EL TABLERO
 place_p_aircraft: ; 50h >> 5 
@@ -809,7 +841,7 @@ continuarOReiniciar:            ;Segun el input sea ESC o ENTER , acaba o contin
     cmp al , 13
     je reiniciar     ;De ingresarse ENTER el programa continua
     
-    jmp ingresoCordenadas
+    jmp continuarOReiniciar
     
     
 reiniciar:                    ;Reinicia todas la variable numericas y el tablero a su estado inicial
@@ -823,11 +855,11 @@ reiniciar:                    ;Reinicia todas la variable numericas y el tablero
     mov nDisparos , 0
     
     mov si, 00h
-    call tableroCeros 
+    call tableroCeros        ;Reinicio del tablero
     
-    jmp iniciar
+    jmp generarTablero
 
-tableroCeros: 
+tableroCeros:                ;Retorna el tablero a su estado original (lleno de 0 numero)
 
     mov table[si], 00h 
     cmp si, 36 
@@ -835,10 +867,17 @@ tableroCeros:
     inc si
     jne tableroCeros
     
-finTableroCeros:
+finTableroCeros:             ;Acaba con los ciclos de tableroCeros
 ret
 
 
-salir: ;Cerrar programa 
+salir: ;Cierra el programa 
+ 
+    call saltoLinea
+    
+    mov ah , 09h
+    lea dx , msgInicio1
+    int 21h
+    
 .exit
 end
