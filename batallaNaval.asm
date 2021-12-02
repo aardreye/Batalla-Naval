@@ -1,13 +1,13 @@
 ;Gabriel Alexander Maldonado Rodriguez
-;Aaron Reyes 
+;Aaron David Reyes Holguin 
 
 
 .model small
 .data
 
 ;----------Variables----------
-corX db 0       ;cordenada de las colubnas para el disparo
-corY db 0       ;cordenada de las filas para el disparo 
+corX db 0       ;coordenada  de las colubnas para el disparo
+corY db 0       ;coordenada  de las filas para el disparo 
 nDisparos db 0  ;Numero de disparos
 
 ;vp de los barcos
@@ -17,8 +17,8 @@ vpPortaAviones db 5
 
 ;----------Areglos----------
            ;ABCDEF
-x_random db ?       ;coordenada de las columnas para el disparo
-y_random db ?       ;coordenada de las filas para el disparo 
+x_random db ?       ;coordenada  random en x para colocar barco
+y_random db ?       ;coordenada  random en y para colocar barco
 
 table   db 6 dup(0) ;1
         db 6 dup(0) ;2
@@ -49,6 +49,8 @@ msgInicio3 db "Generando tablero aleatorio............ Espere por favor $"
 msgMisil db "Misil $"
 msgIngreso db ",ingrese la celda a atacar: $"
 
+msgFin db "Muchas gracias por jugar. Hasta la proxima $"
+
 msgNuevaPartida db "Ingrese ENTER para nueva partida y ESC para acabar el programa $"
 
 ;Notificasiones de disparo
@@ -66,9 +68,9 @@ msgGanador1  db " *********************************************************** ",
              db " *********************************************************** ", 10,13
              db " **                                                       ** ", 10,13
              db " ** ||   ||                                       ||   || ** ", 10,13 
-             db " **    ยบ        EN HORA BUENA, HAS GANADO!!!         ยบ    ** ", 10,13  
+             db " **    ย         EN HORA BUENA, HAS GANADO!!!        ย    ** ", 10,13  
              db " ** \\   //                                       \\   // ** ", 10,13
-             db " **  \___/  Juego perdido, vuelve a intentarlo!!!  \___/  ** ", 10,13 
+             db " **  \___/                                         \___/  ** ", 10,13 
              db " **                                                       ** ", 10,13 
              db " *********************************************************** ", 10,13 
              db " *********************************************************** $"
@@ -408,13 +410,13 @@ imprimir:
 ;;call imprimirMatriz  ;Imprecion del tablero
 
 
-jmp ingresoCordenadas
+jmp ingresoCoordenadas
 
 
 
 
-;---------------------------------Ingreso de cordenadas---------------------------------
-ingresoCordenadas:  ;Imprime el mensaje para el ingreso de cordenadas
+;---------------------------------Ingreso de coordenadas---------------------------------
+ingresoCoordenadas:  ;Imprime el mensaje para el ingreso de cordenadas
    
     inc nDisparos       ;Incremento del contador de disparos (Misil a disparar)
     mov ah , 09h
@@ -654,7 +656,7 @@ continuar:         ;Controla si el juego continua o acaba
     mov dl , nDisparos
     cmp dl , 20
     jae perdedor           ;Si nDisparos == 20 , entonses juego perdido, salto a perdedor
-    jb ingresoCordenadas   ;Si nDisparos != 20 , quedan misiles disponibles, salto a ingresoCordenadas
+    jb ingresoCoordenadas   ;Si nDisparos != 20 , quedan misiles disponibles, salto a ingresoCordenadas
                        
 
 saltoLinea:
@@ -902,8 +904,8 @@ salir: ;Cierra el programa
     call saltoLinea
     
     mov ah , 09h
-    lea dx , msgInicio1
-    int 21h
-    
-.exit
+    lea dx , msgFin
+    int 21h    
+    .exit
+
 end
