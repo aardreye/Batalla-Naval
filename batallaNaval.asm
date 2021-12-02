@@ -35,7 +35,15 @@ borde db "_____________$"
 
 
 ;Mesajes de ingreso 
-msgInicio1 db "          Bienvenido a BATALLA NAVAL $" 
+msgInicio1  db "        ************************************************************", 10,13
+            db "        ************************************************************", 10,13
+            db "        **                                                        **", 10,13 
+            db "        **             BIENVENIDO A LA BATALLA NAVALA             **", 10,13  
+            db "        **                                                        **", 10,13
+            db "        **             ....el estilo de la pelea....              **", 10,13 
+            db "        **                                                        **", 10,13 
+            db "        ************************************************************", 10,13
+            db "        ************************************************************$" 
 msgInicio2 db " Presiona ENTER para visualizar el tablero y ubicar los barcos aleatoriamente $" 
 msgInicio3 db "Generando tablero aleatorio............ Espere por favor $"
 msgMisil db "Misil $"
@@ -54,10 +62,28 @@ msgCruseroHundido db ", crusero hundido.$"
 msgPortaAvionesHundido db ", porta avione hundido.$"
 
 ;Mensajes de final de juego:
-msgGanador1 db "Felisitaciones ha hundido todos los barcos. Ha ganado!! $"
+msgGanador1  db " *********************************************************** ", 10,13
+             db " *********************************************************** ", 10,13
+             db " **                                                       ** ", 10,13
+             db " ** ||   ||                                       ||   || ** ", 10,13 
+             db " **    º        EN HORA BUENA, HAS GANADO!!!         º    ** ", 10,13  
+             db " ** \\   //                                       \\   // ** ", 10,13
+             db " **  \___/  Juego perdido, vuelve a intentarlo!!!  \___/  ** ", 10,13 
+             db " **                                                       ** ", 10,13 
+             db " *********************************************************** ", 10,13 
+             db " *********************************************************** $"
 msgGanador2 db "Numero de total de tiros: $"
 
-msgPerdedor1 db "No ha hundido todos lo barcos. Ha perdido. $"
+msgPerdedor1 db " ************************************************************* ", 10,13
+             db " ************************************************************* ", 10,13
+             db " **\ \  / /                                         \ \  / /** ", 10,13
+             db " ** \ \/ /                                           \ \/ / ** ", 10,13 
+             db " **  \  /        HAS AGOTADO TODOS TUS MISILES        \  /  ** ", 10,13  
+             db " **  /  \                                             /  \  ** ", 10,13
+             db " ** / /\ \   Juego perdido, vuelve a intentarlo!!!   / /\ \ ** ", 10,13 
+             db " **/ /  \ \                                         / /  \ \** ", 10,13 
+             db " ************************************************************* ", 10,13 
+             db " ************************************************************* $"
 msgPerdedor2 db "Objetivos restantes por disparar: $"
 msgPerdedor3 db "Imprimiendo tablero $"
 msgPerdedor4 db "S = Submarino      C = Crusero     P = Portaviones $"
