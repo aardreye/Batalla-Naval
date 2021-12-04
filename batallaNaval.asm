@@ -32,7 +32,14 @@ borde db "_____________$"
 
 ;----------Texto---------- 
 
-
+intruciones db "Instruciones BatallaNaval:",10 , 13 
+            db "1. Para una adecuada imprecion de texto juege en una resolucion de 80x25 char",10,13
+            db "2. De ingresar una coordenada no valida el programa no registrara su ingreso",10,13
+            db "3. Precione ENTER para disparar a las cordenadas ingresadas",10,13 
+            db "4. De volver a disparar a una barco ya disparado, el programa no disparara " ,10,13
+            db "5. El proceso de generacion de tablero puede tardar. Sea paciente",10,13
+            db "6. Bajo ninguna circunstancia modifique el codigo!",10,13
+            db "$"
 
 ;Mesajes de ingreso 
 msgInicio1  db "        ************************************************************", 10,13
@@ -59,9 +66,9 @@ msgFallido db "..................Sin impacto$"
 msgRepetido db "..................Ya disparo hay, no desperdicie misiles!$"
 
 ;Notificasiones de hundimiento
-msgSubmarinoHundido db ", submarino hundido.$"
-msgCruseroHundido db ", crusero hundido.$"
-msgPortaAvionesHundido db ", porta avione hundido.$"
+msgSubmarinoHundido db 10 , 13 , ",Submarino hundido.$"
+msgCruseroHundido db 10 , 13 ,",Crusero hundido.$"
+msgPortaAvionesHundido db 10 , 13 ,",Porta aviones hundido.$"
 
 ;Mensajes de final de juego:
 msgGanador1  db " *********************************************************** ", 10,13
@@ -97,10 +104,17 @@ msgSalir6 db "Gracias por jugar $"
 .start
 
 ;---------------------------------Inicio del juego-----------------------------------
-bienvenido:
+
+inicio:            ;Establese el modo de video y muestra las instruciones
+    mov ah ,00h
+    mov al ,03h
+    int 10h             ;Define el modo de video (03h - text mode. 80x25. 16 colors. 8 pages)
+    
+    
     mov ah , 09h
-    lea dx , msgInicio1
-    int 21h                     ;Imprecion del mensaje en msgInicio1 
+    lea dx , intruciones
+    int 21h                     ;Imprecion del mensaje en intruciones
+    
     
     call saltoLinea 
     
@@ -108,19 +122,28 @@ bienvenido:
     lea dx , msgInicio2
     int 21h                     ;Imprecion del mensaje en msgInicio2
     
-    
-    
     jmp iniciar
 
-iniciar:
+
+iniciar:               ;Arranca el juego al ingresar ENTER
     mov ah , 00h
     int 16h  
  
     cmp al , 13
-    je generarTablero     ;De ingresarse ENTER el programa continua
+    je bienvenido     ;De ingresarse ENTER el programa continua
     
     jne iniciar  
+               
+bienvenido:           ;Muestra el mensaje de bienvedida y arranca la primera partida
     
+    call saltoLinea 
+      
+    mov ah , 09h
+    lea dx , msgInicio1
+    int 21h                     ;Imprecion del mensaje en msgInicio1 
+    
+    jmp generarTablero
+
     
 
 ;---------------------------------Generacion de Tablero---------------------------------
@@ -906,6 +929,6 @@ salir: ;Cierra el programa
     mov ah , 09h
     lea dx , msgFin
     int 21h    
-    .exit
+    .exit                    ;Imprecion del mensaje en msgFin
 
 end
