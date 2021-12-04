@@ -63,7 +63,8 @@ msgNuevaPartida db "Ingrese ENTER para nueva partida y ESC para acabar el progra
 ;Notificasiones de disparo
 msgExitoso db "..................Impacto confirmado$"   
 msgFallido db "..................Sin impacto$"
-msgRepetido db "..................Ya disparo ahi, no desperdicie misiles!$"
+msgRepetido db "..................Ya disparo ahi",10,13
+            db ",No desperdicie misiles!$"
 
 ;Notificasiones de hundimiento
 msgSubmarinoHundido db 10 , 13 , ",Submarino hundido.$"
